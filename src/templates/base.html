@@ -2,10 +2,15 @@
 <html>
     <head>
 
-        <title>Saas</title>
+        <title>{%block head_title%}Saas{%endblock head_title%}</title>
     
     </head>
     <body>
-        <h1>Hello World</h1>
+        <h1>{{page_title}}</h1>
+
+        {% block content%}
+
+        {% endblock content%}
+
     </body>
 </html>
