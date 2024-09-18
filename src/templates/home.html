@@ -3,4 +3,8 @@
     <h1>
         {{ page_title }}
     </h1>
+    <p>
+        {{ request.user }} {{ request.method }} - {{ request.user.is_authenticated }}
+    </p>
+
 </html>
