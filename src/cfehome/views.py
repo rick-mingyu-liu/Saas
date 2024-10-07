@@ -2,7 +2,11 @@ from django.http import HttpResponse
 import pathlib
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+from django.conf import settings
 from visits.models import PageVisit
+
+LOGIN_URL = settings.LOGIN_URL
 
 this_dir = pathlib.Path(__file__).resolve().parent
 
@@ -43,6 +47,10 @@ def pw_protected_view(request, *args, **kwargs):
         return render(request, "protected/view.html", {})
     return render(request, "protected/entry.html", {})
 
-@login_required
+@login_required(login_url=LOGIN_URL)d
 def user_only_view(request, *args, **kwargs):
     return render(request, "protected/user-only.html", {})
+
+@staff_member_required(login_url=LOGIN_URL)
+def staff_only_view(request, *args, **kwargs):
+    return render(request, "protected/staff-only.html", {})
