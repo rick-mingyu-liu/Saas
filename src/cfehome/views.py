@@ -47,7 +47,7 @@ def pw_protected_view(request, *args, **kwargs):
         return render(request, "protected/view.html", {})
     return render(request, "protected/entry.html", {})
 
-@login_required(login_url=LOGIN_URL)d
+@login_required(login_url=LOGIN_URL)
 def user_only_view(request, *args, **kwargs):
     return render(request, "protected/user-only.html", {})
 
