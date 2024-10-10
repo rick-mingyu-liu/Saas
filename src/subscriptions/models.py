@@ -6,6 +6,8 @@ from django.conf import settings
 
 User = settings.AUTH_USER_MODEL # auth user 
 
+ALLOW_CUSTOM_GROUPS = True
+
 SUBSCRIPTION_PERMISSION = [
             ("advanced", "Advanced Perm"),# subscriptions.advanced
             ("pro", "Pro Perm"), # subscriptions.pro
@@ -41,7 +43,23 @@ def user_sub_post_save(sender, instance, *args, **kwargs):
     user_sub_instance = instance
     user = user_sub_instance.user
     subscription_obj = user_sub_instance.subscription
-    groups = subscription_obj.groups.all()
-    user.groups.set(groups)
+    groups_ids = []
+    if subscription_obj is not None:
+        groups = subscription_obj.groups.all()
+        groups_ids = groups.value_list('id', flat=True)
+    if not ALLOW_CUSTOM_GROUPS:
+        user.groups.set(groups)
+    else:
+        sub_qs = Subscription.objects.filter(active=True)
+        if subscription_obj is not None:
+            subs_qs = subs_qs.exclude(id=subscription_obj.id)
+        subs_groups = sub_qs.values_list("groups__id", flat=True)
+        subs_groups_set = set(subs_groups)
+        # group_ids = groups.values_lists('id', flat=True) # 1, 2, 3
+        current_groups =user.groups.all().values_list('id',flat=True)
+        group_ids_set = set(group_ids)
+        current_groups_set = set(current_groups) - subs_groups_set
+        final_group_ids = list(group_ids_set | current_groups_set)
+        user.groups.set(final_group_ids)
     
 post_save.connect(user_sub_post_save, sender=UserSubscription)
