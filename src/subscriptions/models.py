@@ -154,7 +154,7 @@ def user_sub_post_save(sender, instance, *args, **kwargs):
         subs_groups_set = set(subs_groups)
         # group_ids = groups.values_lists('id', flat=True) # 1, 2, 3
         current_groups =user.groups.all().values_list('id',flat=True)
-        group_ids_set = set(group_ids)
+        group_ids_set = set(groups_ids)
         current_groups_set = set(current_groups) - subs_groups_set
         final_group_ids = list(group_ids_set | current_groups_set)
         user.groups.set(final_group_ids)
