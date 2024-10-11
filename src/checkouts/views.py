@@ -1,11 +1,14 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from subscriptions.models import SubscriptionPrice
+from subscriptions.models import SubscriptionPrice, Subscription, UserSubscription
 from django.urls import reverse
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.http import HttpResponseBadRequest
 import helpers.billing
 
 BASE_URL = settings.BASE_URL
+User = get_user_model()
 # Create your views here.
 def product_price_redirect_view(request, price_id=None, *args, **kwargs):
     request.session["checkout_subscription_price_id"] = price_id
@@ -38,16 +41,33 @@ def checkout_redirect_view(request):
 
 def checkout_finalize_view(request):
     session_id = request.GET.get("session_id")
-    checkout_r = helpers.billing.get_checkout_session(session_id, raw=True)
-    customer_id = checkout_r.customer
-    sub_stripe_id = checkout_r.subscription
-    sub_r = helpers.billing.get_subscription(sub_stripe_id, raw=True)
-    sub_plan = sub_r.plan
-    sub_plan_price_stripe_id = sub_plan.id
-    price_qs  = SubscriptionPrice.objects.filter(strip_id=sub_plan_price_stripe_id)
-    print(price_qs)
-    context = {
-        "subscription": sub_r,
-        "checkout": checkout_r  
-    }
+    customer_id, plan_id = helpers.billing.get_checkout_customer_plan(session_id)
+    try:
+        sub_obj = Subscription.objects.get(subscriptionprice__stripe=plan_id)
+    except:
+        sub_obj = None
+    
+    try:
+        user_obj = User.objects.get(customer__stripe=customer_id)
+    except:
+        user_obj = None
+        
+    _user_sub_exists = False
+    try:
+        _user_sub_obj = UserSubscription.objects.get(user=user_obj)
+        _user_sub_exists = True
+    except UserSubscription.DoesNotExist:
+        _user_sub_obj = UserSubscription.objects.create(user=user_obj, subscription=sub_obj)
+    except:
+        _user_sub_obj = None
+    
+    if None in [user_obj, sub_obj, _user_sub_obj]:
+        return HttpResponseBadRequest("There was an error with your account, please contact support.")
+    if _user_sub_exists:
+        # cancel old sub
+        
+        # assign new sub
+        _user_sub_obj.subscription = sub_obj
+        _user_sub_obj.save()
+    context = {}
     return render(request, "checkout/success.html")
