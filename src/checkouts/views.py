@@ -41,7 +41,18 @@ def checkout_redirect_view(request):
 
 def checkout_finalize_view(request):
     session_id = request.GET.get("session_id")
-    customer_id, plan_id, sub_stripe_id = helpers.billing.get_checkout_customer_plan(session_id)
+    checkout_data = helpers.billing.get_checkout_customer_plan(session_id)
+    data = {
+        "customer_id": customer_id,
+        "sub_stripe_id": sub_stripe_id,
+        "current_period_start": sub_r.current_period_start,
+        "current_period_end": sub_r.current_period_end
+    }
+    plan_id = checkout_data.get('plan_id')
+    customer_id = checkout_data.get('customer_id')
+    sub_stripe_id = checkout_data.get("sub_stripe_id")
+    current_period_start = checkout_data.get('current_period_start')
+    current_period_end = checkout_data.get('current_period_end') 
     try:
         sub_obj = Subscription.objects.get(subscriptionprice__stripe=plan_id)
     except:
@@ -56,7 +67,9 @@ def checkout_finalize_view(request):
     updated_sub_options = {
         "subscription": sub_obj,
         "stripe_id": sub_stripe_id,
-        "user_cancelled": False
+        "user_cancelled": False,
+        "current_period_start": current_period_start,
+        "current_period_end": current_period_end
     }
     try:
         _user_sub_obj = UserSubscription.objects.get(user=user_obj)
