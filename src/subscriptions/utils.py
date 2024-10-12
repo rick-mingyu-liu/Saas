@@ -3,18 +3,12 @@ import helpers.billing
 from django.db.models import Q
 from customers.models import Customer
 
-def refresh_active_users_subscriptions(user_ids=None):
-    active_qs_lookup = (
-        Q(status = SubscriptionStatus.ACTIVE) |
-        Q(status = SubscriptionStatus.TRIALING)
-    )
-    qs = UserSubscription.objects.filter(active_qs_lookup)
-    if isinstance(user_ids, list):
-        qs = qs.filter(user_id__in=user_ids)
-    elif isinstance(user_ids, int):
-        qs = qs.filter(user_id=[user_ids])
-    elif isinstance(user_ids, str):
-        qs = qs.filter(user_id=[user_ids])
+def refresh_active_users_subscriptions(user_ids=None, active_only=True):
+    qs = UserSubscription.objects.all()
+    if active_only:
+        qs = qs.by_active_trialing()
+    if user_ids is not None:
+        qs = qs.by_user_ids(user_ids=user_ids)
     complete_count = 0
     qs_count = qs.count()
     active_qs = qs.filter(status=SubscriptionStatus.ACTIVE)

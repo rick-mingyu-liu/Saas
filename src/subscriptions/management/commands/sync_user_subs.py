@@ -15,6 +15,8 @@ class Command(BaseCommand):
             sub_utils.clear_dangling_subs()
         else:
             print("sync active subs")
-            print("Done")
+            done = sub_utils.refresh_active_users_subscriptions(active_only=True)
+            if done:
+                print("Done")
             
             
