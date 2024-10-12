@@ -128,9 +128,18 @@ def get_checkout_customer_plan(session_id):
     }
     return data
 
+def get_customer_active_subscriptions(customer_stripe_id):
+    response = stripe.Subscription.list(
+        customer=customer_stripe_id,
+        status="active"
+    )
+    return response
+
+
+
 def cancel_subscription(sub_stripe_id, reason="", feedback="other", cancel_at_period_end=False, raw=True):
     if cancel_at_period_end:
-        response = stripe.Subscription.cancel(
+        response = stripe.Subscription.modify(
             sub_stripe_id,
             cancel_at_period_end = cancel_at_period_end,
             cancellation_details={
