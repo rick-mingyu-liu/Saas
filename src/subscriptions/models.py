@@ -179,6 +179,24 @@ class UserSubscription(models.Model):
     current_period_end = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True, null=True)
     status = models.CharField(max_length=20, null=True, choices=SubscriptionStatus.choices, blank=True)
     
+    def get_absolute_url(self):
+        if not self.subscription:
+            return None
+        return reverse("user_subscription")
+    
+    @property
+    def plan_name(self):
+        return self.subscription.name
+    
+    def serialize(self):
+        return {
+            "plan_name": self.plan_name,
+            "status": self.status,
+            "current_period_start":self.current_period_start,
+            "current_period_end": self.current_period_end,
+        }
+    
+    
     @property
     def billing_cycle_anchor(self):
         """
