@@ -24,7 +24,7 @@ from landing import views as landing_views
 from .views import home_view, about_view, pw_protected_view, user_only_view, staff_only_view
 
 urlpatterns = [
-    path("", landing_views.landing_page_view, name='home'), #index page -> root page
+    path("", landing_views.landing_dashboard_page_view, name='home'), #index page -> root page
     # path("login/", auth_views.login_view),
     # path("register/", auth_views.register_view),
     path("checkout/sub-price/<int:price_id>/", checkout_views.product_price_redirect_view, name='sub-price-checkout'),
